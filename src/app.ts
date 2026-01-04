@@ -1,12 +1,18 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import cors from 'cors';
+import cors = require('cors');
 import health from './api/health';
 import det from './api/coverage/deterministic';
 import vec from './api/coverage/vectorSearch';
 import hybrid from './api/coverage/hybrid';
 import gap from './api/llm/gapAnalysis';
 import missing from './api/llm/missingScenarios';
+import embeddingsRouter from './api/v1/embeddings';
+import vectorIndexRouter from './api/v1/search/index';
+import vectorSearchRouter from './api/v1/search/vector';
+import hybridSearchRouter from './api/v1/search/hybrid';
+import rerankRouter from './api/v1/search/rerank';
+import summarizeRouter from './api/v1/search/summarize';
 import metadata from './api/metadata';
 import scenarios from './api/scenarios';
 import { jobQueue } from './pipeline/jobQueue';
@@ -32,6 +38,12 @@ app.use(vec);
 app.use(hybrid);
 app.use(gap);
 app.use(missing);
+app.use(embeddingsRouter);
+app.use(vectorIndexRouter);
+app.use(vectorSearchRouter);
+app.use(hybridSearchRouter);
+app.use(rerankRouter);
+app.use(summarizeRouter);
 
 // job polling
 app.get('/pipeline/jobs/:id', (req, res) => {

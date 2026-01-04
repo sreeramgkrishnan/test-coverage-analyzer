@@ -31,10 +31,3 @@ router.post('/llm/missing-scenarios', async (req, res) => {
 });
 
 export default router;
-// src/api/llm/missingScenarios.ts
-import { Request, Response } from 'express';
-
-export const generateMissingScenarios = async (req: Request, res: Response) => {
-    // Placeholder for generating missing Gherkin scenarios
-    res.status(200).json({ message: 'Missing scenarios generation endpoint' });
-};

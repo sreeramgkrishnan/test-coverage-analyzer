@@ -1,30 +1,65 @@
-import { embeddingsStore } from '../data/embeddingsStore';
-import { config } from '../utils/config';
+import { MongoClient, ObjectId } from 'mongodb';
+import generateEmbedding from './embeddings';
+import { vectorConfig } from '../utils/vectorConfig';
 
-const makeEmbedding = (text: string, dim = config.embeddingDim) => {
-  const vec = new Array(dim).fill(0).map((_, i) => {
-    const c = text.charCodeAt(i % text.length) || 0;
-    return ((c % 100) - 50) / 50; // deterministic pseudo-values
-  });
-  return vec;
+let client: MongoClient | null = null;
+async function getClient() {
+  if (!client) {
+    client = new MongoClient(vectorConfig.mongoUri as string, { useNewUrlParser: true, useUnifiedTopology: true } as any);
+    await client.connect();
+  }
+  return client;
 }
 
-const dot = (a: number[], b: number[]) => a.reduce((s, v, i) => s + v * (b[i] ?? 0), 0);
-const norm = (a: number[]) => Math.sqrt(a.reduce((s, v) => s + v * v, 0));
-
-export const indexScenario = (id: string, text: string, metadata?: Record<string, any>) => {
-  const v = makeEmbedding(text);
-  embeddingsStore.upsert(id, v, metadata);
+function cosine(a: number[], b: number[]) {
+  const n = Math.min(a.length, b.length);
+  let dp = 0;
+  let na = 0;
+  let nb = 0;
+  for (let i = 0; i < n; i++) {
+    const ai = a[i] || 0;
+    const bi = b[i] || 0;
+    dp += ai * bi;
+    na += ai * ai;
+    nb += bi * bi;
+  }
+  const denom = Math.sqrt(na) * Math.sqrt(nb);
+  if (denom === 0) return 0;
+  return dp / denom;
 }
 
-export const search = (query: string, topK = 5) => {
-  const qv = makeEmbedding(query);
-  const all = embeddingsStore.getAll();
-  const scored = all.map(r => {
-    const score = dot(qv, r.vector) / (norm(qv) * norm(r.vector) || 1e-6);
-    return { id: r.id, score, metadata: r.metadata };
-  }).sort((a,b)=>b.score-a.score);
-  return scored.slice(0, topK);
+export async function indexScenario(id: string, embedding: number[], metadata: any = {}) {
+  const c = await getClient();
+  const col = c.db(vectorConfig.mongoDbName).collection(vectorConfig.collection);
+  await col.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { embedding, metadata, updatedAt: new Date() } },
+    { upsert: true }
+  );
 }
-// src/services/vectorSearch.ts
-// This file is intentionally left blank.
+
+export async function searchByEmbedding(queryEmbedding: number[], topK = 5, filter: any = {}) {
+  const c = await getClient();
+  const col = c.db(vectorConfig.mongoDbName).collection(vectorConfig.collection);
+
+  const cursor = col.find(filter).project({ embedding: 1, metadata: 1 }).limit(vectorConfig.maxCandidates);
+  const docs = await cursor.toArray();
+
+  const scored = docs
+    .map((d: any) => {
+      const emb = d.embedding || [];
+      const score = cosine(queryEmbedding, emb);
+      return { id: d._id, score, metadata: d.metadata || {} };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topK);
+
+  return scored;
+}
+
+export async function search(queryText: string, topK = 5, filter: any = {}) {
+  const qEmb = await generateEmbedding(queryText);
+  return searchByEmbedding(qEmb.embedding, topK, filter);
+}
+
+export default { indexScenario, search, searchByEmbedding };
