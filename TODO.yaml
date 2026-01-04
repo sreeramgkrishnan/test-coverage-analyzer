@@ -1,0 +1,127 @@
+
+
+Architecture flow
+
+Frontend (React / Next.js)
+        |
+        v
+Backend API (FastAPI / NestJS)
+        |
+        +-- Gherkin Ingestion Service
+        |
+        +-- Coverage Analysis Engine (Deterministic)
+        |
+        +-- Vector Store (RAG)
+        |
+        +-- LLM Insight Engine
+
+
+
+Backend – Detailed Design (Gherkin Focused)
+Gherkin Ingestion Service
+Canonical Test Model
+Coverage Engine
+
+Coverage Engine (NO AI Here)
+Coverage Dimensions You Can Compute
+1. Feature Coverage
+	•	Features with:
+	•	At least one happy path
+	•	At least one negative path
+
+2. Scenario Coverage
+	•	Count:
+	•	Positive
+	•	Negative
+	•	Edge cases
+
+3. Step Coverage
+Normalize steps:
+Use:
+	•	regex normalization
+	•	embedding similarity (>0.9)
+4. Tag Coverage
+5. Flow Coverage  
+
+RAG Design (Gherkin Optimized)
+Create embeddings for:
+	1.	Scenario Intent
+  2.	Combined Steps
+  3.	Feature Description
+    - Store separately for precision queries.
+
+
+
+
+ Frontend – Gherkin-Focused UX
+
+Key Screens
+
+1. Upload & Scan
+	•	Upload .feature files or repo URL
+	•	Select:
+	•	Framework: Playwright / Selenium
+	•	Test type: E2E
+
+⸻
+
+2. Coverage Dashboard
+Visuals:
+	•	Coverage by Feature
+	•	Coverage by Tag
+	•	Happy vs Negative Paths
+	•	Duplicate Scenarios   
+
+
+⸻
+
+3. AI Suggestions
+Show:
+	•	Missing scenarios
+	•	Risk explanation
+	•	“Generate .feature file” button
+
+  Build Order (Highly Recommended)
+  Phase 1 – Deterministic Core
+	•	Parse Gherkin
+	•	Compute coverage
+	•	Simple dashboard
+
+Phase 2 – RAG
+	•	Store embeddings
+	•	Similarity detection
+	•	Duplicate detection
+
+Phase 3 – GenAI Insights
+	•	Gap explanation
+	•	Scenario generation
+	•	Export .feature
+
+
+
+  React Architecture
+
+  src/
+ ├─ components/
+ │   ├─ Upload/
+ │   ├─ Dashboard/
+ │   ├─ Coverage/
+ │   ├─ Insights/
+ │   ├─ GherkinViewer/
+ │
+ ├─ pages/
+ │   ├─ UploadPage.tsx
+ │   ├─ DashboardPage.tsx
+ │
+ ├─ services/
+ │   ├─ api.ts
+ │   ├─ coverage.service.ts
+ │
+ ├─ hooks/
+ │   ├─ useUpload.ts
+ │   ├─ useCoverage.ts
+ │
+ ├─ types/
+ │   └─ coverage.types.ts
+ │
+ └─ App.tsx
