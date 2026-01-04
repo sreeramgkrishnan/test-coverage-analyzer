@@ -8,7 +8,6 @@ build/
 coverage/
 npm-debug.log
 yarn-error.log
-Architecture.md
 copilot
 GeneratedArchitecturePrompt.md
 package-lock.json
