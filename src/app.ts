@@ -9,6 +9,8 @@ import gap from './api/llm/gapAnalysis';
 import missing from './api/llm/missingScenarios';
 import metadata from './api/metadata';
 import scenarios from './api/scenarios';
+import { generateEmbeddings } from './api/embed';
+import searchRouter from './api/search';
 import { jobQueue } from './pipeline/jobQueue';
 import { config } from './utils/config';
 import { logger } from './utils/logger';
@@ -33,6 +35,12 @@ app.use(hybrid);
 app.use(gap);
 app.use(missing);
 
+// embeddings endpoint
+app.post('/v1/embeddings', generateEmbeddings);
+
+// vector search
+app.use('/', searchRouter);
+
 // job polling
 app.get('/pipeline/jobs/:id', (req, res) => {
   const j = jobQueue.get(req.params.id);
@@ -49,6 +57,12 @@ const port = config.port;
 app.listen(port, () => {
   logger.info(`server running on ${port}`);
   logger.info(`health endpoints: http://localhost:${port}/health  |  http://localhost:${port}/api/health  |  http://localhost:${port}/v1/health  |  http://localhost:${port}/v1/health/db`);
+  // print rerank endpoint
+  // eslint-disable-next-line no-console
+  console.log(`POST http://localhost:${port}/v1/search/rerank`);
+  // print summarize endpoint
+  // eslint-disable-next-line no-console
+  console.log(`POST http://localhost:${port}/v1/search/summarize`);
 });
 
 export default app;
