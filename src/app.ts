@@ -10,9 +10,12 @@ import missing from './api/llm/missingScenarios';
 import embeddingsRouter from './api/v1/embeddings';
 import vectorIndexRouter from './api/v1/search/index';
 import vectorSearchRouter from './api/v1/search/vector';
+import deterministicSearchRouter from './api/v1/search/deterministic';
 import hybridSearchRouter from './api/v1/search/hybrid';
 import rerankRouter from './api/v1/search/rerank';
 import summarizeRouter from './api/v1/search/summarize';
+import llmGapAnalysisRouter from './api/v1/llm/gap-analysis';
+import jiraFetchRouter from './api/v1/jira/fetch';
 import metadata from './api/metadata';
 import scenarios from './api/scenarios';
 import { jobQueue } from './pipeline/jobQueue';
@@ -41,9 +44,12 @@ app.use(missing);
 app.use(embeddingsRouter);
 app.use(vectorIndexRouter);
 app.use(vectorSearchRouter);
+app.use(deterministicSearchRouter);
 app.use(hybridSearchRouter);
 app.use(rerankRouter);
 app.use(summarizeRouter);
+app.use(llmGapAnalysisRouter);
+app.use(jiraFetchRouter);
 
 // job polling
 app.get('/pipeline/jobs/:id', (req, res) => {

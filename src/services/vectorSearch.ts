@@ -42,14 +42,20 @@ export async function searchByEmbedding(queryEmbedding: number[], topK = 5, filt
   const c = await getClient();
   const col = c.db(vectorConfig.mongoDbName).collection(vectorConfig.collection);
 
-  const cursor = col.find(filter).project({ embedding: 1, metadata: 1 }).limit(vectorConfig.maxCandidates);
+  const cursor = col.find(filter).limit(vectorConfig.maxCandidates);
   const docs = await cursor.toArray();
 
   const scored = docs
     .map((d: any) => {
       const emb = d.embedding || [];
       const score = cosine(queryEmbedding, emb);
-      return { id: d._id, score, metadata: d.metadata || {} };
+      return { 
+        id: d._id, 
+        score, 
+        text: d.text || d.metadata?.text || '',
+        metadata: d.metadata || {},
+        document: d
+      };
     })
     .sort((a, b) => b.score - a.score)
     .slice(0, topK);

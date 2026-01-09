@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { summarizeForLLM } from '../../services/llmOrchestrator';
 import { jobQueue } from '../../pipeline/jobQueue';
 import { v4 as uuidv4 } from 'uuid';
@@ -31,7 +31,7 @@ router.post('/llm/gap-analysis', async (req, res) => {
 });
 
 export default router;
-export const gapAnalysis = async (req, res) => {
+export const gapAnalysis = async (req: Request, res: Response) => {
     // Placeholder for gap analysis logic
     res.status(200).json({ message: "Gap analysis endpoint is under construction." });
 };
